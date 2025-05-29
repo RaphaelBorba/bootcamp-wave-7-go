@@ -1,1 +1,2 @@
-Apenas a primeira linha
+Ok.
+Teste simples para resolução de conflito
