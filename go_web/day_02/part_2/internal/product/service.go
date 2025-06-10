@@ -11,7 +11,7 @@ type service struct {
 }
 
 type Service interface {
-	FindOneById(id int) (*domain.Product, error)
+	GetById(id int) (*domain.Product, error)
 	Create(body domain.CreateProductRequest) (*domain.Product, error)
 }
 
@@ -19,9 +19,9 @@ func NewService(repository Repository) Service {
 	return &service{repository}
 }
 
-func (s *service) FindOneById(id int) (*domain.Product, error) {
+func (s *service) GetById(id int) (*domain.Product, error) {
 
-	prod, err := s.repostory.GetProductById(id)
+	prod, err := s.repostory.GetById(id)
 
 	if err != nil {
 		return nil, fmt.Errorf("Produto não encontrado: %+v", err)

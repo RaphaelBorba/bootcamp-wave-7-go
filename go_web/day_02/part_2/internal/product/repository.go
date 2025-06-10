@@ -70,7 +70,7 @@ func (r *Repository) Create(body domain.CreateProductRequest) (*domain.Product, 
 
 }
 
-func (r *Repository) GetProductById(id int) (*domain.Product, error) {
+func (r *Repository) GetById(id int) (*domain.Product, error) {
 	for _, prd := range r.products {
 		if prd.Id == id {
 			return &prd, nil

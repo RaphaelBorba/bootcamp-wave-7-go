@@ -35,7 +35,7 @@ func (h *ProductHandler) FindOneById() http.HandlerFunc {
 			return
 		}
 
-		prod, err := h.service.FindOneById(id)
+		prod, err := h.service.GetById(id)
 
 		if err != nil {
 			http.Error(w,
