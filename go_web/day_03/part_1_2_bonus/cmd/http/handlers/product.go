@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -169,5 +171,27 @@ func (h *ProductHandler) Delete() http.HandlerFunc {
 		}
 
 		response.JSON(w, http.StatusNoContent, nil)
+	}
+}
+
+func (h *ProductHandler) GetConsumerPrice() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		raw := r.URL.Query().Get("list")
+
+		var productsIds []int
+		if raw != "" {
+			if err := json.Unmarshal([]byte(raw), &productsIds); err != nil {
+				response.JSON(w, http.StatusBadRequest, map[string]string{"error": "parâmetro 'list' inválido"})
+				return
+			}
+		}
+
+		result, err := h.service.GetConsumerPrice(productsIds)
+		if err != nil {
+			response.JSON(w, http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("%v", err)})
+		}
+
+		response.JSON(w, http.StatusOK, result)
 	}
 }

@@ -18,3 +18,8 @@ type CreateProductRequest struct {
 	Expiration  string  `json:"expiration"`
 	Price       float64 `json:"price"`
 }
+
+type ConsumerPrice struct {
+	Products   []Product `json:"products"`
+	TotalPrice float64   `json:"total_prices"`
+}
