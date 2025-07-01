@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/RaphaelBorba/challenge_web/internal/domain"
 	"github.com/RaphaelBorba/challenge_web/pkg/apperrors"
@@ -14,6 +15,8 @@ import (
 type Repository interface {
 	GetAll() ([]domain.Ticket, error)
 	GetById(id int) (*domain.Ticket, error)
+	CountTicketsByDestiny(destiny string) (int, error)
+	GetAverage(destiny string) (float64, error)
 }
 
 type repository struct {
@@ -77,4 +80,33 @@ func (r *repository) GetById(id int) (*domain.Ticket, error) {
 		return nil, apperrors.ErrNotFound
 	}
 	return &t, nil
+}
+
+func (r *repository) CountTicketsByDestiny(destiny string) (int, error) {
+
+	total := 0
+	for _, t := range r.tickets {
+		if strings.ToLower(t.Country) == strings.ToLower(destiny) {
+			total++
+		}
+	}
+	if total == 0 {
+		return 0, apperrors.ErrNotFound
+	}
+	return total, nil
+}
+
+func (r *repository) GetAverage(destiny string) (float64, error) {
+
+	total := 0.0
+	for _, t := range r.tickets {
+		if strings.ToLower(t.Country) == strings.ToLower(destiny) {
+			total++
+		}
+	}
+	if total == 0 {
+		return 0.0, apperrors.ErrNotFound
+	}
+	avg := total * 100 / float64(len(r.tickets))
+	return avg, nil
 }

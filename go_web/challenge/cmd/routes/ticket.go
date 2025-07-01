@@ -23,6 +23,8 @@ func buildTicketsRoutes() http.Handler {
 
 	r.Get("/", h.GetAll())
 	r.Get("/{ticketId}", h.GetByID())
+	r.Get("/getByCountry/{dest}", h.GetByCountry())
+	r.Get("/getAverage/{dest}", h.GetAverage())
 
 	return r
 

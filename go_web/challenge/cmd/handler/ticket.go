@@ -55,3 +55,49 @@ func (h *TicketHandler) GetByID() http.HandlerFunc {
 		response.JSON(w, http.StatusOK, map[string]any{"data": tkt, "message": "ok"})
 	}
 }
+
+func (h *TicketHandler) GetByCountry() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		destiny := chi.URLParam(r, "dest")
+		if len(destiny) <= 0 {
+			response.Error(w, http.StatusBadRequest, apperrors.ErrValidation.Error())
+			return
+		}
+
+		totalFlights, err := h.svc.CountTicketsByDestiny(destiny)
+		if err != nil {
+			switch {
+			case errors.Is(err, apperrors.ErrNotFound):
+				response.Error(w, http.StatusNotFound, err.Error())
+			default:
+				response.Error(w, http.StatusInternalServerError, apperrors.ErrInternalError.Error())
+			}
+			return
+		}
+
+		response.JSON(w, http.StatusOK, map[string]any{"data": totalFlights, "message": "ok"})
+	}
+}
+
+func (h *TicketHandler) GetAverage() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		destiny := chi.URLParam(r, "dest")
+		if len(destiny) <= 0 {
+			response.Error(w, http.StatusBadRequest, apperrors.ErrValidation.Error())
+			return
+		}
+
+		avg, err := h.svc.GetAverage(destiny)
+		if err != nil {
+			switch {
+			case errors.Is(err, apperrors.ErrNotFound):
+				response.Error(w, http.StatusNotFound, err.Error())
+			default:
+				response.Error(w, http.StatusInternalServerError, apperrors.ErrInternalError.Error())
+			}
+			return
+		}
+
+		response.JSON(w, http.StatusOK, map[string]any{"data": avg, "message": "ok"})
+	}
+}
