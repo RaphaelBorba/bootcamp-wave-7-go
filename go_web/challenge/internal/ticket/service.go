@@ -1,9 +1,12 @@
 package ticket
 
-import "github.com/RaphaelBorba/challenge_web/internal/domain"
+import (
+	"github.com/RaphaelBorba/challenge_web/internal/domain"
+	"github.com/RaphaelBorba/challenge_web/pkg/apperrors"
+)
 
 type Service interface {
-	GetAll() (map[int]domain.Ticket, error)
+	GetAll() ([]domain.Ticket, error)
 	GetById(id int) (*domain.Ticket, error)
 }
 
@@ -15,10 +18,17 @@ func NewService(r Repository) *service {
 	return &service{repo: r}
 }
 
-func (s *service) GetAll() (map[int]domain.Ticket, error) {
+func (s *service) GetAll() ([]domain.Ticket, error) {
 	return s.repo.GetAll()
 }
 
 func (s *service) GetById(id int) (*domain.Ticket, error) {
-	return s.repo.GetById(id)
+	if id <= 0 {
+		return nil, apperrors.ErrValidation
+	}
+	t, err := s.repo.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
 }

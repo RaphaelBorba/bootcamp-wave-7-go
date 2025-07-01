@@ -22,6 +22,7 @@ func buildTicketsRoutes() http.Handler {
 	h := handler.NewTicketHandler(svc)
 
 	r.Get("/", h.GetAll())
+	r.Get("/{ticketId}", h.GetByID())
 
 	return r
 

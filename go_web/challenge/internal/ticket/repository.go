@@ -3,14 +3,16 @@ package ticket
 import (
 	"encoding/csv"
 	"io"
+	"log"
 	"os"
 	"strconv"
 
 	"github.com/RaphaelBorba/challenge_web/internal/domain"
+	"github.com/RaphaelBorba/challenge_web/pkg/apperrors"
 )
 
 type Repository interface {
-	GetAll() (map[int]domain.Ticket, error)
+	GetAll() ([]domain.Ticket, error)
 	GetById(id int) (*domain.Ticket, error)
 }
 
@@ -21,32 +23,34 @@ type repository struct {
 func NewRepository(path string) (*repository, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		log.Printf("repository: failed to open CSV file %q: %v", path, err)
+		return nil, apperrors.ErrInternalError
 	}
 	defer f.Close()
 
 	rdr := csv.NewReader(f)
 
-	ticketsMap := make(map[int]domain.Ticket)
+	m := make(map[int]domain.Ticket)
 	for {
 		rec, err := rdr.Read()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			return nil, err
+			log.Printf("repository: error reading CSV record: %v", err)
+			return nil, apperrors.ErrInternalError
 		}
 
 		id, err := strconv.Atoi(rec[0])
 		if err != nil {
-			return nil, err
+			return nil, apperrors.ErrValidation
 		}
 		price, err := strconv.ParseFloat(rec[5], 64)
 		if err != nil {
-			return nil, err
+			return nil, apperrors.ErrValidation
 		}
 
-		ticketsMap[id] = domain.Ticket{
+		m[id] = domain.Ticket{
 			Id:      id,
 			Name:    rec[1],
 			Email:   rec[2],
@@ -56,18 +60,21 @@ func NewRepository(path string) (*repository, error) {
 		}
 	}
 
-	return &repository{tickets: ticketsMap}, nil
+	return &repository{tickets: m}, nil
 }
 
-func (r *repository) GetAll() (map[int]domain.Ticket, error) {
-	return r.tickets, nil
+func (r *repository) GetAll() ([]domain.Ticket, error) {
+	out := make([]domain.Ticket, 0, len(r.tickets))
+	for _, t := range r.tickets {
+		out = append(out, t)
+	}
+	return out, nil
 }
 
 func (r *repository) GetById(id int) (*domain.Ticket, error) {
-	for _, t := range r.tickets {
-		if t.Id == id {
-			return &t, nil
-		}
+	t, ok := r.tickets[id]
+	if !ok {
+		return nil, apperrors.ErrNotFound
 	}
-	return nil, nil
+	return &t, nil
 }
