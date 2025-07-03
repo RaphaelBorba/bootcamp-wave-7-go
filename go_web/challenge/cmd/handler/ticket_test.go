@@ -97,6 +97,15 @@ func TestTicketHandler_GetByID(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, rr.Code)
 	})
 
+	t.Run("error: validation error for negative id", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/tickets/getById/-5", nil)
+		rr := httptest.NewRecorder()
+
+		r.ServeHTTP(rr, req)
+
+		require.Equal(t, http.StatusBadRequest, rr.Code)
+	})
+
 	t.Run("error: ticket not found", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/tickets/getById/999", nil)
 		rr := httptest.NewRecorder()
