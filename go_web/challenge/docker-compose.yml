@@ -1,0 +1,6 @@
+services:
+  app:
+    build: .
+    image: challenge-web:latest
+    ports:
+      - "8080:8080"
