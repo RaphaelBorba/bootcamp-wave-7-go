@@ -1,11 +1,14 @@
 package application
 
 import (
+	"app/internal/config"
 	"app/internal/handler"
 	"app/internal/repository"
-	"app/internal/store"
+	"database/sql"
 	"log"
 	"net/http"
+
+	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -47,11 +50,19 @@ func (a *ApplicationDefault) TearDown() (err error) {
 func (a *ApplicationDefault) SetUp() (err error) {
 	// dependencies
 	// - store
-	st := store.NewStoreProductJSON(a.filePathStore)
-	// - repository
-	rp := repository.NewRepositoryProductStore(st)
+	dbCfg := config.LoadDBConfig()
+	db, err := sql.Open("mysql", dbCfg.DSN())
+	if err != nil {
+		log.Fatalf("could not open DB: %v", err)
+	}
+	if err := db.Ping(); err != nil {
+		log.Fatalf("could not ping DB: %v", err)
+	}
+
+	// 2. Create a MySQL-backed repository
+	repo := repository.NewRepositoryProductMySQL(db)
 	// - handler
-	hd := handler.NewHandlerProduct(rp)
+	hd := handler.NewHandlerProduct(repo)
 
 	// router
 	// - middlewares

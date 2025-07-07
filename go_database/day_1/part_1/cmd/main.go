@@ -3,11 +3,17 @@ package main
 import (
 	"app/internal/application"
 	"fmt"
+	"log"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	// env
 	// ...
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, relying on real env vars")
+	}
 
 	// app
 	// - config
