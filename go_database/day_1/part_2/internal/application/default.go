@@ -61,10 +61,12 @@ func (d *Default) Run() (err error) {
 	}
 
 	// - repository: products
-	rp := repository.NewProductsMySQL(db)
+	rp_w := repository.NewWarehouseMySQL(db)
+	rp_p := repository.NewProductsMySQL(db)
 
 	// - handler: products
-	hp := handler.NewProductsDefault(rp)
+	hp_p := handler.NewProductsDefault(rp_p, rp_w)
+	hp_w := handler.NewWarehouseDefault(rp_w)
 
 	// - router: chi
 	rt := chi.NewRouter()
@@ -74,13 +76,24 @@ func (d *Default) Run() (err error) {
 	// - router: routes
 	rt.Route("/products", func(r chi.Router) {
 		// - GET /products
-		r.Get("/{id}", hp.GetOne())
+		r.Get("/{id}", hp_p.GetOne())
 		// - POST /products
-		r.Post("/", hp.Create())
+		r.Post("/", hp_p.Create())
 		// - PUT /products/{id}
-		r.Patch("/{id}", hp.Update())
+		r.Patch("/{id}", hp_p.Update())
 		// - DELETE /products/{id}
-		r.Delete("/{id}", hp.Delete())
+		r.Delete("/{id}", hp_p.Delete())
+	})
+
+	rt.Route("/warehouse", func(r chi.Router) {
+		// - GET /products
+		r.Get("/{id}", hp_w.GetOneWarehouse())
+		// - POST /products
+		r.Post("/", hp_w.CreateWarehouse())
+		// - PUT /products/{id}
+		r.Patch("/{id}", hp_w.UpdateWarehouse())
+		// - DELETE /products/{id}
+		r.Delete("/{id}", hp_w.DeleteWarehouse())
 	})
 
 	// run

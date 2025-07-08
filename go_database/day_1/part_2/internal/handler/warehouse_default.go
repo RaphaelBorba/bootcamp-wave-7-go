@@ -7,39 +7,34 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 )
 
 // NewProductsDefault returns a new instance of ProductsDefault
-func NewProductsDefault(rp_p internal.RepositoryProducts, rp_w internal.RepositoryWarehouse) *ProductsDefault {
-	return &ProductsDefault{
-		rp_p: rp_p,
+func NewWarehouseDefault(rp_w internal.RepositoryWarehouse) *WarehouseDefault {
+	return &WarehouseDefault{
 		rp_w: rp_w,
 	}
 }
 
 // ProductsDefault is a struct that represents the default product handler
-type ProductsDefault struct {
+type WarehouseDefault struct {
 	// rp_p is the product repository
-	rp_p internal.RepositoryProducts
 	rp_w internal.RepositoryWarehouse
 }
 
 // ProductJSON is a struct that represents a product in JSON
-type ProductJSON struct {
-	ID          int     `json:"id"`
-	Name        string  `json:"name"`
-	Quantity    int     `json:"quantity"`
-	CodeValue   string  `json:"code_value"`
-	IsPublished bool    `json:"is_published"`
-	Expiration  string  `json:"expiration"`
-	Price       float64 `json:"price"`
+type WarehouseJSON struct {
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	Adress    string `json:"adress"`
+	Telephone string `json:"telephone"`
+	Capacity  int    `json:"capacity"`
 }
 
 // GetOne returns a product by id
-func (h *ProductsDefault) GetOne() http.HandlerFunc {
+func (h *WarehouseDefault) GetOneWarehouse() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// request
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -49,11 +44,11 @@ func (h *ProductsDefault) GetOne() http.HandlerFunc {
 		}
 
 		// process
-		p, err := h.rp_p.GetOne(id)
+		ware, err := h.rp_w.GetOneWarehouse(id)
 		if err != nil {
 			switch {
 			case errors.Is(err, internal.ErrProductNotFound):
-				response.Error(w, http.StatusNotFound, "product not found")
+				response.Error(w, http.StatusNotFound, "warehouse not found")
 			default:
 				response.Error(w, http.StatusInternalServerError, "internal server error")
 			}
@@ -62,56 +57,43 @@ func (h *ProductsDefault) GetOne() http.HandlerFunc {
 
 		// response
 		// - serialize
-		data := ProductJSON{
-			ID:          p.ID,
-			Name:        p.Name,
-			Quantity:    p.Quantity,
-			CodeValue:   p.CodeValue,
-			IsPublished: p.IsPublished,
-			Expiration:  p.Expiration.Format(time.DateOnly),
-			Price:       p.Price,
+		data := WarehouseJSON{
+			ID:        ware.ID,
+			Name:      ware.Name,
+			Adress:    ware.Adress,
+			Telephone: ware.Telephone,
+			Capacity:  ware.Capacity,
 		}
 		response.JSON(w, http.StatusOK, map[string]any{"message": "product found", "data": data})
 	}
 }
 
 // RequestBodyProductCreate is a struct that represents the request body of a product to create
-type RequestBodyProductCreate struct {
-	Name        string  `json:"name"`
-	Quantity    int     `json:"quantity"`
-	CodeValue   string  `json:"code_value"`
-	IsPublished bool    `json:"is_published"`
-	Expiration  string  `json:"expiration"`
-	Price       float64 `json:"price"`
-	IdWarehouse int     `json:"id_warehouse"`
+type RequestBodyWarehouseJSONCreate struct {
+	Name      string `json:"name"`
+	Adress    string `json:"adress"`
+	Telephone string `json:"telephone"`
+	Capacity  int    `json:"capacity"`
 }
 
 // Create creates a product
-func (h *ProductsDefault) Create() http.HandlerFunc {
+func (h *WarehouseDefault) CreateWarehouse() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// request
-		var body RequestBodyProductCreate
+		var body RequestBodyWarehouseJSONCreate
 		if err := request.JSON(r, &body); err != nil {
 			response.Error(w, http.StatusBadRequest, "invalid request body")
 			return
 		}
-		exp, err := time.Parse(time.DateOnly, body.Expiration)
-		if err != nil {
-			response.Error(w, http.StatusBadRequest, "invalid expiration date")
-			return
-		}
 
 		// process
-		p := internal.Product{
-			Name:        body.Name,
-			Quantity:    body.Quantity,
-			CodeValue:   body.CodeValue,
-			IsPublished: body.IsPublished,
-			Expiration:  exp,
-			Price:       body.Price,
-			IdWarehouse: body.IdWarehouse,
+		ware := internal.Warehouse{
+			Name:      body.Name,
+			Adress:    body.Adress,
+			Telephone: body.Telephone,
+			Capacity:  body.Capacity,
 		}
-		if err := h.rp_p.Store(&p); err != nil {
+		if err := h.rp_w.StoreWarehouse(&ware); err != nil {
 			switch {
 			case errors.Is(err, internal.ErrProductNotUnique):
 				response.Error(w, http.StatusConflict, "product not unique")
@@ -125,31 +107,27 @@ func (h *ProductsDefault) Create() http.HandlerFunc {
 
 		// response
 		// - serialize
-		data := ProductJSON{
-			ID:          p.ID,
-			Name:        p.Name,
-			Quantity:    p.Quantity,
-			CodeValue:   p.CodeValue,
-			IsPublished: p.IsPublished,
-			Expiration:  p.Expiration.Format(time.DateOnly),
-			Price:       p.Price,
+		data := WarehouseJSON{
+			ID:        ware.ID,
+			Name:      ware.Name,
+			Adress:    ware.Adress,
+			Telephone: ware.Telephone,
+			Capacity:  ware.Capacity,
 		}
 		response.JSON(w, http.StatusCreated, map[string]any{"message": "product created", "data": data})
 	}
 }
 
 // RequestBodyProductUpdate is a struct that represents the request body of a product to update
-type RequestBodyProductUpdate struct {
-	Name        string  `json:"name"`
-	Quantity    int     `json:"quantity"`
-	CodeValue   string  `json:"code_value"`
-	IsPublished bool    `json:"is_published"`
-	Expiration  string  `json:"expiration"`
-	Price       float64 `json:"price"`
+type RequestBodyWarehouseUpdate struct {
+	Name      string `json:"name"`
+	Adress    string `json:"adress"`
+	Telephone string `json:"telephone"`
+	Capacity  int    `json:"capacity"`
 }
 
 // Update updates a product
-func (h *ProductsDefault) Update() http.HandlerFunc {
+func (h *WarehouseDefault) UpdateWarehouse() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// request
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -160,7 +138,7 @@ func (h *ProductsDefault) Update() http.HandlerFunc {
 
 		// process
 		// - get product
-		p, err := h.rp_p.GetOne(id)
+		ware, err := h.rp_w.GetOneWarehouse(id)
 		if err != nil {
 			switch {
 			case errors.Is(err, internal.ErrProductNotFound):
@@ -171,36 +149,28 @@ func (h *ProductsDefault) Update() http.HandlerFunc {
 			return
 		}
 		// - patch product
-		body := RequestBodyProductUpdate{
-			Name:        p.Name,
-			Quantity:    p.Quantity,
-			CodeValue:   p.CodeValue,
-			IsPublished: p.IsPublished,
-			Expiration:  p.Expiration.Format(time.DateOnly),
-			Price:       p.Price,
+		body := RequestBodyWarehouseUpdate{
+			Name:      ware.Name,
+			Adress:    ware.Adress,
+			Telephone: ware.Telephone,
+			Capacity:  ware.Capacity,
 		}
 		if err := request.JSON(r, &body); err != nil {
 			response.Error(w, http.StatusBadRequest, "invalid request body")
 			return
 		}
-		exp, err := time.Parse(time.DateOnly, body.Expiration)
-		if err != nil {
-			response.Error(w, http.StatusBadRequest, "invalid expiration date")
-			return
-		}
-		p.Name = body.Name
-		p.Quantity = body.Quantity
-		p.CodeValue = body.CodeValue
-		p.IsPublished = body.IsPublished
-		p.Expiration = exp
-		p.Price = body.Price
-		// - update product
-		if err := h.rp_p.Update(&p); err != nil {
+
+		ware.Name = body.Name
+		ware.Adress = body.Adress
+		ware.Telephone = body.Telephone
+		ware.Capacity = body.Capacity
+
+		if err := h.rp_w.UpdateWarehouse(&ware); err != nil {
 			switch {
 			case errors.Is(err, internal.ErrProductNotUnique):
-				response.Error(w, http.StatusConflict, "product not unique")
+				response.Error(w, http.StatusConflict, "warehouse not unique")
 			case errors.Is(err, internal.ErrProductRelation):
-				response.Error(w, http.StatusConflict, "product relation error")
+				response.Error(w, http.StatusConflict, "warehouse relation error")
 			default:
 				response.Error(w, http.StatusInternalServerError, "internal server error")
 			}
@@ -209,21 +179,19 @@ func (h *ProductsDefault) Update() http.HandlerFunc {
 
 		// response
 		// - serialize
-		data := ProductJSON{
-			ID:          p.ID,
-			Name:        p.Name,
-			Quantity:    p.Quantity,
-			CodeValue:   p.CodeValue,
-			IsPublished: p.IsPublished,
-			Expiration:  p.Expiration.Format(time.DateOnly),
-			Price:       p.Price,
+		data := WarehouseJSON{
+			ID:        ware.ID,
+			Name:      ware.Name,
+			Adress:    ware.Adress,
+			Telephone: ware.Telephone,
+			Capacity:  ware.Capacity,
 		}
 		response.JSON(w, http.StatusOK, map[string]any{"message": "product updated", "data": data})
 	}
 }
 
 // Delete deletes a product by id
-func (h *ProductsDefault) Delete() http.HandlerFunc {
+func (h *WarehouseDefault) DeleteWarehouse() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// request
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -233,7 +201,7 @@ func (h *ProductsDefault) Delete() http.HandlerFunc {
 		}
 
 		// process
-		if err := h.rp_p.Delete(id); err != nil {
+		if err := h.rp_w.DeleteWarehouse(id); err != nil {
 			response.Error(w, http.StatusInternalServerError, "internal server error")
 			return
 		}
