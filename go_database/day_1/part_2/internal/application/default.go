@@ -75,6 +75,7 @@ func (d *Default) Run() (err error) {
 	rt.Use(middleware.Recoverer)
 	// - router: routes
 	rt.Route("/products", func(r chi.Router) {
+		r.Get("/", hp_p.GetAll())
 		// - GET /products
 		r.Get("/{id}", hp_p.GetOne())
 		// - POST /products
@@ -86,6 +87,7 @@ func (d *Default) Run() (err error) {
 	})
 
 	rt.Route("/warehouse", func(r chi.Router) {
+		r.Get("/", hp_w.GetAllWarehouses())
 		// - GET /products
 		r.Get("/{id}", hp_w.GetOneWarehouse())
 		// - POST /products
@@ -94,6 +96,8 @@ func (d *Default) Run() (err error) {
 		r.Patch("/{id}", hp_w.UpdateWarehouse())
 		// - DELETE /products/{id}
 		r.Delete("/{id}", hp_w.DeleteWarehouse())
+
+		r.Get("/reportProducts", hp_w.GetWarehouseReport())
 	})
 
 	// run

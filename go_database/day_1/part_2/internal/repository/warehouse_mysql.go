@@ -3,6 +3,7 @@ package repository
 import (
 	"app/internal"
 	"database/sql"
+	"fmt"
 	"log"
 )
 
@@ -14,6 +15,41 @@ func NewWarehouseMySQL(db *sql.DB) *WarehouseMySQL {
 
 type WarehouseMySQL struct {
 	db *sql.DB
+}
+
+func (r *WarehouseMySQL) GetAllWarehouses() (warehouses []internal.Warehouse, err error) {
+	const query = `
+        SELECT id, name, adress, telephone, capacity
+        FROM warehouses
+    `
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		log.Printf("[GetAllWarehouses][MySQL] query error: %v", err)
+		return nil, fmt.Errorf("querying all warehouses: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var w internal.Warehouse
+		if err := rows.Scan(
+			&w.ID,
+			&w.Name,
+			&w.Adress,
+			&w.Telephone,
+			&w.Capacity,
+		); err != nil {
+			log.Printf("[GetAllWarehouses][MySQL] scan error: %v", err)
+			return nil, fmt.Errorf("scanning warehouse: %w", err)
+		}
+		warehouses = append(warehouses, w)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("[GetAllWarehouses][MySQL] rows iteration error: %v", err)
+		return nil, fmt.Errorf("iterating warehouse rows: %w", err)
+	}
+
+	return warehouses, nil
 }
 
 func (r *WarehouseMySQL) GetOneWarehouse(id int) (w internal.Warehouse, err error) {
@@ -81,4 +117,44 @@ func (r *WarehouseMySQL) DeleteWarehouse(id int) (err error) {
 	}
 
 	return
+}
+
+func (r *WarehouseMySQL) GetWarehouseReport(warehouseID *int) (reports []internal.WarehouseReport, err error) {
+	query := `
+        SELECT w.name,
+               COUNT(p.id) AS product_count
+        FROM warehouses AS w
+        LEFT JOIN products AS p
+          ON p.id_warehouse = w.id
+    `
+	args := []any{}
+
+	if warehouseID != nil {
+		query += " WHERE w.id = ?"
+		args = append(args, *warehouseID)
+	}
+
+	query += " GROUP BY w.name"
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		log.Printf("[GetWarehouseReport][MySQL] query error: %v, args=%v", err, args)
+		return nil, fmt.Errorf("querying warehouse report: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var rpt internal.WarehouseReport
+		if err := rows.Scan(&rpt.Name, &rpt.ProductCount); err != nil {
+			log.Printf("[GetWarehouseReport][MySQL] scan error: %v", err)
+			return nil, fmt.Errorf("scanning warehouse report: %w", err)
+		}
+		reports = append(reports, rpt)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("[GetWarehouseReport][MySQL] rows iteration error: %v", err)
+		return nil, fmt.Errorf("iterating rows: %w", err)
+	}
+
+	return reports, nil
 }

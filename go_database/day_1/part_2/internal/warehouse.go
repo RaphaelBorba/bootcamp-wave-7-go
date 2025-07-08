@@ -7,3 +7,8 @@ type Warehouse struct {
 	Telephone string
 	Capacity  int
 }
+
+type WarehouseReport struct {
+	Name         string
+	ProductCount int
+}

@@ -5,6 +5,7 @@ import (
 	"app/platform/web/request"
 	"app/platform/web/response"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -31,6 +32,33 @@ type WarehouseJSON struct {
 	Adress    string `json:"adress"`
 	Telephone string `json:"telephone"`
 	Capacity  int    `json:"capacity"`
+}
+
+func (h *WarehouseDefault) GetAllWarehouses() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		all, err := h.rp_w.GetAllWarehouses()
+		if err != nil {
+			log.Printf("[GetAllWarehouses] repo error: %v", err)
+			response.Error(w, http.StatusInternalServerError, "internal server error")
+			return
+		}
+
+		payload := make([]WarehouseJSON, len(all))
+		for i, wh := range all {
+			payload[i] = WarehouseJSON{
+				ID:        wh.ID,
+				Name:      wh.Name,
+				Adress:    wh.Adress,
+				Telephone: wh.Telephone,
+				Capacity:  wh.Capacity,
+			}
+		}
+
+		response.JSON(w, http.StatusOK, map[string]any{
+			"message": "warehouses retrieved",
+			"data":    payload,
+		})
+	}
 }
 
 // GetOne returns a product by id
@@ -208,5 +236,53 @@ func (h *WarehouseDefault) DeleteWarehouse() http.HandlerFunc {
 
 		// response
 		response.JSON(w, http.StatusOK, map[string]any{"message": "product deleted", "data": id})
+	}
+}
+
+type WarehouseReportJSON struct {
+	WarehouseName string `json:"warehouse_name"`
+	ProductCount  int    `json:"product_count"`
+}
+
+func (h *WarehouseDefault) GetWarehouseReport() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		var idStr string
+		if p := chi.URLParam(r, "id"); p != "" {
+			idStr = p
+		} else {
+			idStr = r.URL.Query().Get("id")
+		}
+
+		var filterID *int
+		if idStr != "" {
+			id, err := strconv.Atoi(idStr)
+			if err != nil {
+				log.Printf("[GetWarehouseReport] invalid warehouse id: %q, err: %v", idStr, err)
+				response.Error(w, http.StatusBadRequest, "invalid warehouse id")
+				return
+			}
+			filterID = &id
+		}
+
+		reports, err := h.rp_w.GetWarehouseReport(filterID)
+		if err != nil {
+			log.Printf("[GetWarehouseReport] repo error (filterID=%v): %v", filterID, err)
+			response.Error(w, http.StatusInternalServerError, "internal server error")
+			return
+		}
+
+		payload := make([]WarehouseReportJSON, len(reports))
+		for i, rpt := range reports {
+			payload[i] = WarehouseReportJSON{
+				WarehouseName: rpt.Name,
+				ProductCount:  rpt.ProductCount,
+			}
+		}
+
+		response.JSON(w, http.StatusOK, map[string]any{
+			"message": "warehouse report retrieved",
+			"data":    payload,
+		})
 	}
 }

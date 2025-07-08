@@ -3,6 +3,7 @@ package repository
 import (
 	"app/internal"
 	"database/sql"
+	"fmt"
 	"log"
 )
 
@@ -17,6 +18,37 @@ func NewProductsMySQL(db *sql.DB) *ProductsMySQL {
 type ProductsMySQL struct {
 	// db is the database connection
 	db *sql.DB
+}
+
+func (r *ProductsMySQL) GetAll() (products []internal.Product, err error) {
+	const query = `
+        SELECT id, name, quantity, code_value, is_published, expiration, price
+        FROM products
+    `
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		log.Printf("[GetAll][MySQL] query error: %v", err)
+		return nil, fmt.Errorf("querying all products: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var p internal.Product
+		if err := rows.Scan(
+			&p.ID, &p.Name, &p.Quantity, &p.CodeValue, &p.IsPublished, &p.Expiration, &p.Price,
+		); err != nil {
+			log.Printf("[GetAll][MySQL] scan error: %v", err)
+			return nil, fmt.Errorf("scanning products: %w", err)
+		}
+		products = append(products, p)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("[GetAll][MySQL] rows iteration error: %v", err)
+		return nil, fmt.Errorf("iterating products rows: %w", err)
+	}
+
+	return products, nil
 }
 
 // GetOne returns a product by id

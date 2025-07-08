@@ -13,6 +13,7 @@ var (
 
 // RepositoryProducts is an interface that represents a product repository
 type RepositoryProducts interface {
+	GetAll() (products []Product, err error)
 	// GetOne returns a product by id
 	GetOne(id int) (p Product, err error)
 	// Store stores a product

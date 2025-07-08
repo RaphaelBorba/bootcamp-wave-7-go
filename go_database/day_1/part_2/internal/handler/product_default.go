@@ -5,6 +5,7 @@ import (
 	"app/platform/web/request"
 	"app/platform/web/response"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -36,6 +37,35 @@ type ProductJSON struct {
 	IsPublished bool    `json:"is_published"`
 	Expiration  string  `json:"expiration"`
 	Price       float64 `json:"price"`
+}
+
+func (h *ProductsDefault) GetAll() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		all, err := h.rp_p.GetAll()
+		if err != nil {
+			log.Printf("[GetAll] repo error: %v", err)
+			response.Error(w, http.StatusInternalServerError, "internal server error")
+			return
+		}
+
+		payload := make([]ProductJSON, len(all))
+		for i, p := range all {
+			payload[i] = ProductJSON{
+				ID:          p.ID,
+				Name:        p.Name,
+				Quantity:    p.Quantity,
+				CodeValue:   p.CodeValue,
+				IsPublished: p.IsPublished,
+				Expiration:  p.Expiration.Format(time.DateOnly),
+				Price:       p.Price,
+			}
+		}
+
+		response.JSON(w, http.StatusOK, map[string]any{
+			"message": "products retrieved",
+			"data":    payload,
+		})
+	}
 }
 
 // GetOne returns a product by id
