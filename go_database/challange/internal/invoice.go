@@ -17,3 +17,10 @@ type Invoice struct {
 	// InvoiceAttributes is the attributes of the invoice.
 	InvoiceAttributes
 }
+
+type InvoiceDTO struct {
+	ID         int     `json:"id"`
+	Datetime   string  `json:"datetime"`
+	Total      float64 `json:"total"`
+	CustomerId int     `json:"customer_id"`
+}

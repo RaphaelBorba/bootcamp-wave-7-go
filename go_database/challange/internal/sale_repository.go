@@ -6,4 +6,6 @@ type RepositorySale interface {
 	FindAll() (s []Sale, err error)
 	// Save saves a sale.
 	Save(s *Sale) (err error)
+
+	CreateFromImport(s SaleDTO) error
 }

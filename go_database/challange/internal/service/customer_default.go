@@ -1,6 +1,9 @@
 package service
 
-import "app/internal"
+import (
+	"app/internal"
+	"fmt"
+)
 
 // NewCustomersDefault creates new default service for customer entity.
 func NewCustomersDefault(rp internal.RepositoryCustomer) *CustomersDefault {
@@ -23,4 +26,13 @@ func (s *CustomersDefault) FindAll() (c []internal.Customer, err error) {
 func (s *CustomersDefault) Save(c *internal.Customer) (err error) {
 	err = s.rp.Save(c)
 	return
+}
+
+func (s *CustomersDefault) Import(items []internal.CustomerDTO) error {
+	for _, c := range items {
+		if err := s.rp.CreateFromImport(c); err != nil {
+			return fmt.Errorf("insert customer %d: %w", c.ID, err)
+		}
+	}
+	return nil
 }

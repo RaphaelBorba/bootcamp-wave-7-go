@@ -1,6 +1,9 @@
 package service
 
-import "app/internal"
+import (
+	"app/internal"
+	"fmt"
+)
 
 // NewProductsDefault creates new default service for product entity.
 func NewProductsDefault(rp internal.RepositoryProduct) *ProductsDefault {
@@ -23,4 +26,13 @@ func (s *ProductsDefault) FindAll() (p []internal.Product, err error) {
 func (s *ProductsDefault) Save(p *internal.Product) (err error) {
 	err = s.rp.Save(p)
 	return
+}
+
+func (s *ProductsDefault) Import(items []internal.ProductDTO) error {
+	for _, c := range items {
+		if err := s.rp.CreateFromImport(c); err != nil {
+			return fmt.Errorf("insert customer %d: %w", c.ID, err)
+		}
+	}
+	return nil
 }

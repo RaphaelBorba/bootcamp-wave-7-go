@@ -67,3 +67,14 @@ func (r *ProductsMySQL) Save(p *internal.Product) (err error) {
 
 	return
 }
+
+func (r ProductsMySQL) CreateFromImport(p internal.ProductDTO) error {
+	_, err := r.db.Exec(`
+        INSERT INTO products (id, description, price)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+          description = VALUES(description),
+          price  = VALUES(price)
+    `, p.ID, p.Description, p.Price)
+	return err
+}

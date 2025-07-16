@@ -64,7 +64,18 @@ func (r *CustomersMySQL) Save(c *internal.Customer) (err error) {
 
 	// set the id
 	(*c).Id = int(id)
-	
+
 	return
 }
 
+func (r CustomersMySQL) CreateFromImport(c internal.CustomerDTO) error {
+	_, err := r.db.Exec(`
+        INSERT INTO customers (id, first_name, last_name, `+"`condition`"+`)
+        VALUES (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+          first_name = VALUES(first_name),
+          last_name  = VALUES(last_name),
+          `+"`condition`"+`  = VALUES(`+"`condition`"+`)
+    `, c.ID, c.FirstName, c.LastName, c.Condition)
+	return err
+}

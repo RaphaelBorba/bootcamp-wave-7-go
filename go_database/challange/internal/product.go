@@ -15,3 +15,9 @@ type Product struct {
 	// ProductAttributes is the attributes of the product.
 	ProductAttributes
 }
+
+type ProductDTO struct {
+	ID          int     `json:"id"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+}

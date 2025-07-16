@@ -67,3 +67,15 @@ func (r *SalesMySQL) Save(s *internal.Sale) (err error) {
 
 	return
 }
+
+func (r SalesMySQL) CreateFromImport(s internal.SaleDTO) error {
+	_, err := r.db.Exec(`
+        INSERT INTO sales (id, quantity, invoice_id, product_id)
+        VALUES (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+          quantity = VALUES(quantity),
+          invoice_id  = VALUES(invoice_id),
+		  product_id  = VALUES(product_id)
+    `, s.ID, s.Quantity, s.InvoiceId, s.ProductId)
+	return err
+}

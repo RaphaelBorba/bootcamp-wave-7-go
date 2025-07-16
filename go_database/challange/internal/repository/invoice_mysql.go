@@ -67,3 +67,15 @@ func (r *InvoicesMySQL) Save(i *internal.Invoice) (err error) {
 
 	return
 }
+
+func (r InvoicesMySQL) CreateFromImport(i internal.InvoiceDTO) error {
+	_, err := r.db.Exec(`
+        INSERT INTO invoices (id, datetime, customer_id, total)
+        VALUES (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+          datetime = VALUES(datetime),
+          customer_id  = VALUES(customer_id),
+          total  = VALUES(total)
+    `, i.ID, i.Datetime, i.CustomerId, i.Total)
+	return err
+}

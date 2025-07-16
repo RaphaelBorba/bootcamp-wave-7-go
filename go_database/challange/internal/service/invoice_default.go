@@ -1,6 +1,9 @@
 package service
 
-import "app/internal"
+import (
+	"app/internal"
+	"fmt"
+)
 
 // NewInvoicesDefault creates new default service for invoice entity.
 func NewInvoicesDefault(rp internal.RepositoryInvoice) *InvoicesDefault {
@@ -23,4 +26,13 @@ func (s *InvoicesDefault) FindAll() (i []internal.Invoice, err error) {
 func (s *InvoicesDefault) Save(i *internal.Invoice) (err error) {
 	err = s.rp.Save(i)
 	return
+}
+
+func (s *InvoicesDefault) Import(items []internal.InvoiceDTO) error {
+	for _, c := range items {
+		if err := s.rp.CreateFromImport(c); err != nil {
+			return fmt.Errorf("insert customer %d: %w", c.ID, err)
+		}
+	}
+	return nil
 }
