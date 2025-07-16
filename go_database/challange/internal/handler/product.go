@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 
 	"app/internal"
@@ -26,6 +27,7 @@ type ProductJSON struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 }
+
 // GetAll returns all products
 func (h *ProductsDefault) GetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -61,6 +63,7 @@ type RequestBodyProduct struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 }
+
 // Create creates a new product
 func (h *ProductsDefault) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -98,6 +101,33 @@ func (h *ProductsDefault) Create() http.HandlerFunc {
 		response.JSON(w, http.StatusCreated, map[string]any{
 			"message": "product created",
 			"data":    pr,
+		})
+	}
+}
+
+func (h *ProductsDefault) GetTopSellingProducts() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Call service layer
+		items, err := h.sv.GetTopSellingProducts(5)
+		if err != nil {
+			log.Println("GetTopSellingProducts error:", err)
+			response.Error(w, http.StatusInternalServerError, "error getting top selling products")
+			return
+		}
+
+		// Map to JSON format
+		out := make([]internal.ProductQuantity, len(items))
+		for i, v := range items {
+			out[i] = internal.ProductQuantity{
+				Description:   v.Description,
+				TotalQuantity: v.TotalQuantity,
+			}
+		}
+
+		// Send response
+		response.JSON(w, http.StatusOK, map[string]any{
+			"message": "top selling products",
+			"data":    out,
 		})
 	}
 }

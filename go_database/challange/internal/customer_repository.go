@@ -8,4 +8,8 @@ type RepositoryCustomer interface {
 	Save(c *Customer) (err error)
 
 	CreateFromImport(c CustomerDTO) error
+
+	GetTotalSpentByCondition() ([]ConditionTotal, error)
+
+	GetTopSpenders(limit int) ([]CustomerSpender, error)
 }

@@ -8,4 +8,6 @@ type ServiceProduct interface {
 	Save(p *Product) (err error)
 
 	Import(items []ProductDTO) error
+
+	GetTopSellingProducts(limit int) ([]ProductQuantity, error)
 }

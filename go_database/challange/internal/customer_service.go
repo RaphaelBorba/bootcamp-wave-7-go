@@ -8,4 +8,8 @@ type ServiceCustomer interface {
 	Save(c *Customer) (err error)
 
 	Import(items []CustomerDTO) error
+
+	GetTotalByCondition() ([]ConditionTotal, error)
+
+	GetTopSpenders(limit int) ([]CustomerSpender, error)
 }

@@ -8,4 +8,6 @@ type RepositoryProduct interface {
 	Save(p *Product) (err error)
 
 	CreateFromImport(p ProductDTO) error
+
+	GetTopSellingProducts(limit int) ([]ProductQuantity, error)
 }

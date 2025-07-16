@@ -95,12 +95,18 @@ func (a *ApplicationDefault) SetUp() (err error) {
 		r.Get("/", hdCustomer.GetAll())
 		// - POST /customers
 		r.Post("/", hdCustomer.Create())
+
+		r.Get("/condition", hdCustomer.GetTotalByCondition())
+
+		r.Get("/top-spenders", hdCustomer.GetTopSpenders())
 	})
 	a.router.Route("/products", func(r chi.Router) {
 		// - GET /products
 		r.Get("/", hdProduct.GetAll())
 		// - POST /products
 		r.Post("/", hdProduct.Create())
+
+		r.Get("/best-sellers", hdProduct.GetTopSellingProducts())
 	})
 	a.router.Route("/invoices", func(r chi.Router) {
 		// - GET /invoices

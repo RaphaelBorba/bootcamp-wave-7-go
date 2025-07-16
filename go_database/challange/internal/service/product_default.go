@@ -36,3 +36,7 @@ func (s *ProductsDefault) Import(items []internal.ProductDTO) error {
 	}
 	return nil
 }
+
+func (s *ProductsDefault) GetTopSellingProducts(limit int) ([]internal.ProductQuantity, error) {
+	return s.rp.GetTopSellingProducts(limit)
+}

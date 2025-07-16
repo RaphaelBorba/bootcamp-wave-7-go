@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 
 	"app/internal"
 )
@@ -77,4 +78,37 @@ func (r ProductsMySQL) CreateFromImport(p internal.ProductDTO) error {
           price  = VALUES(price)
     `, p.ID, p.Description, p.Price)
 	return err
+}
+
+func (r *ProductsMySQL) GetTopSellingProducts(limit int) ([]internal.ProductQuantity, error) {
+	query := `
+	SELECT
+	  p.description,
+	  SUM(s.quantity) AS total_quantity
+	FROM products AS p
+	JOIN sales    AS s ON s.product_id = p.id
+	GROUP BY p.description
+	ORDER BY total_quantity DESC
+	LIMIT ?
+	`
+
+	rows, err := r.db.Query(query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query top selling products: %w", err)
+	}
+	defer rows.Close()
+
+	var results []internal.ProductQuantity
+	for rows.Next() {
+		var pq internal.ProductQuantity
+		if err := rows.Scan(&pq.Description, &pq.TotalQuantity); err != nil {
+			return nil, fmt.Errorf("scan product quantity: %w", err)
+		}
+		results = append(results, pq)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate top selling rows: %w", err)
+	}
+
+	return results, nil
 }

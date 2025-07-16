@@ -28,6 +28,7 @@ type CustomerJSON struct {
 	LastName  string `json:"last_name"`
 	Condition int    `json:"condition"`
 }
+
 // GetAll returns all customers
 func (h *CustomersDefault) GetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -66,6 +67,7 @@ type RequestBodyCustomer struct {
 	LastName  string `json:"last_name"`
 	Condition int    `json:"condition"`
 }
+
 // Create creates a new customer
 func (h *CustomersDefault) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -105,6 +107,58 @@ func (h *CustomersDefault) Create() http.HandlerFunc {
 		response.JSON(w, http.StatusCreated, map[string]any{
 			"message": "customer created",
 			"data":    cs,
+		})
+	}
+}
+
+func (h *CustomersDefault) GetTotalByCondition() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		totals, err := h.sv.GetTotalByCondition()
+		if err != nil {
+			log.Println("GetTotalByCondition error:", err)
+			response.Error(w, http.StatusInternalServerError, "error getting totals by condition")
+			return
+		}
+
+		out := make([]internal.ConditionTotal, len(totals))
+		for i, t := range totals {
+			out[i] = internal.ConditionTotal{
+				Condition:  t.Condition,
+				TotalSpent: t.TotalSpent,
+			}
+		}
+
+		response.JSON(w, http.StatusOK, map[string]any{
+			"message": "totals by condition",
+			"data":    out,
+		})
+	}
+}
+
+func (h *CustomersDefault) GetTopSpenders() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		items, err := h.sv.GetTopSpenders(5)
+		if err != nil {
+			log.Println("GetTopSpenders error:", err)
+			response.Error(w, http.StatusInternalServerError, "error getting top spenders")
+			return
+		}
+
+		out := make([]internal.CustomerSpender, len(items))
+		for i, v := range items {
+			out[i] = internal.CustomerSpender{
+				ID:         v.ID,
+				FirstName:  v.FirstName,
+				LastName:   v.LastName,
+				Condition:  v.Condition,
+				TotalSpent: v.TotalSpent,
+			}
+		}
+
+		response.JSON(w, http.StatusOK, map[string]any{
+			"message": "top spenders",
+			"data":    out,
 		})
 	}
 }

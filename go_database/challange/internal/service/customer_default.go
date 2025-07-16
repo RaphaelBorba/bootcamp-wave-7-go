@@ -28,6 +28,14 @@ func (s *CustomersDefault) Save(c *internal.Customer) (err error) {
 	return
 }
 
+func (s *CustomersDefault) GetTotalByCondition() ([]internal.ConditionTotal, error) {
+	return s.rp.GetTotalSpentByCondition()
+}
+
+func (s *CustomersDefault) GetTopSpenders(limit int) ([]internal.CustomerSpender, error) {
+	return s.rp.GetTopSpenders(limit)
+}
+
 func (s *CustomersDefault) Import(items []internal.CustomerDTO) error {
 	for _, c := range items {
 		if err := s.rp.CreateFromImport(c); err != nil {

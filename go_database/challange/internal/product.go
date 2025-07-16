@@ -21,3 +21,8 @@ type ProductDTO struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 }
+
+type ProductQuantity struct {
+	Description   string  `json:"description"`
+	TotalQuantity float64 `json:"total_quantity"`
+}

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 
 	"app/internal"
 )
@@ -78,4 +79,82 @@ func (r CustomersMySQL) CreateFromImport(c internal.CustomerDTO) error {
           `+"`condition`"+`  = VALUES(`+"`condition`"+`)
     `, c.ID, c.FirstName, c.LastName, c.Condition)
 	return err
+}
+
+func (r *CustomersMySQL) GetTotalSpentByCondition() ([]internal.ConditionTotal, error) {
+	query := `
+	SELECT
+	  c.` + "`condition`" + `,
+	  ROUND(SUM(s.quantity * p.price), 2) AS total_spent
+	FROM customers AS c
+	JOIN invoices  AS i ON i.customer_id = c.id
+	JOIN sales     AS s ON s.invoice_id  = i.id
+	JOIN products  AS p ON p.id         = s.product_id
+	WHERE c.` + "`condition`" + ` IN (0,1)
+	GROUP BY c.` + "`condition`" + `
+	ORDER BY c.` + "`condition`" + `
+	`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("query total spent by condition: %w", err)
+	}
+	defer rows.Close()
+
+	var results []internal.ConditionTotal
+	for rows.Next() {
+		var ct internal.ConditionTotal
+		if err := rows.Scan(&ct.Condition, &ct.TotalSpent); err != nil {
+			return nil, fmt.Errorf("scan total spent row: %w", err)
+		}
+		results = append(results, ct)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate total spent rows: %w", err)
+	}
+
+	return results, nil
+}
+
+func (r *CustomersMySQL) GetTopSpenders(limit int) ([]internal.CustomerSpender, error) {
+	query := `
+	SELECT
+	  c.id,
+	  c.first_name,
+	  c.last_name,
+	  c.` + "`condition`" + `,
+	  ROUND(SUM(s.quantity * p.price), 2) AS total_spent
+	FROM customers AS c
+	  JOIN invoices  AS i ON i.customer_id = c.id
+	  JOIN sales     AS s ON s.invoice_id  = i.id
+	  JOIN products  AS p ON p.id         = s.product_id
+	WHERE c.` + "`condition`" + ` = 1
+	GROUP BY
+	  c.id,
+	  c.first_name,
+	  c.last_name
+	ORDER BY
+	  total_spent DESC
+	LIMIT ?
+	`
+
+	rows, err := r.db.Query(query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query top spenders: %w", err)
+	}
+	defer rows.Close()
+
+	var results []internal.CustomerSpender
+	for rows.Next() {
+		var cs internal.CustomerSpender
+		if err := rows.Scan(&cs.ID, &cs.FirstName, &cs.LastName, &cs.Condition, &cs.TotalSpent); err != nil {
+			return nil, fmt.Errorf("scan top spender row: %w", err)
+		}
+		results = append(results, cs)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate top spender rows: %w", err)
+	}
+
+	return results, nil
 }

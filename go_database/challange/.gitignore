@@ -350,4 +350,8 @@ MigrationBackup/
 .ionide/
 
 tmp
-import-json
+# ignore the file named “import-json” in the repo root
+/import-json
+
+# except if it’s a directory (i.e. “import-json/”), don’t ignore it
+!/import-json/
