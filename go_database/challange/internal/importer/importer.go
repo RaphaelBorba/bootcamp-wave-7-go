@@ -14,32 +14,26 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// Run reads JSON files from jsonDir, opens a DB connection, and imports their data into the database
 func Run(jsonDir string) error {
-	// Read DSN from environment
 
 	dsn := "root:rootpass@tcp(localhost:3306)/fantasy_products?parseTime=true"
 
-	// Open the database connection once
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return fmt.Errorf("open db: %w", err)
 	}
 	defer db.Close()
 
-	// Initialize repositories
 	rpCustomer := repository.NewCustomersMySQL(db)
 	rpProduct := repository.NewProductsMySQL(db)
 	rpInvoice := repository.NewInvoicesMySQL(db)
 	rpSale := repository.NewSalesMySQL(db)
 
-	// Initialize services
 	svCustomer := service.NewCustomersDefault(rpCustomer)
 	svProduct := service.NewProductsDefault(rpProduct)
 	svInvoice := service.NewInvoicesDefault(rpInvoice)
 	svSale := service.NewSalesDefault(rpSale)
 
-	// Define JSON files and their import handlers
 	files := []struct {
 		Name    string
 		Handler func([]byte) error
@@ -77,7 +71,6 @@ func Run(jsonDir string) error {
 		}},
 	}
 
-	// Loop through each file, read, parse, and import
 	for _, f := range files {
 		path := filepath.Join(jsonDir, f.Name)
 		data, err := ioutil.ReadFile(path)
