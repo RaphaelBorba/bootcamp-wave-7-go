@@ -82,18 +82,7 @@ func (r CustomersMySQL) CreateFromImport(c internal.CustomerDTO) error {
 }
 
 func (r *CustomersMySQL) GetTotalSpentByCondition() ([]internal.ConditionTotal, error) {
-	query := `
-	SELECT
-	  c.` + "`condition`" + `,
-	  ROUND(SUM(s.quantity * p.price), 2) AS total_spent
-	FROM customers AS c
-	JOIN invoices  AS i ON i.customer_id = c.id
-	JOIN sales     AS s ON s.invoice_id  = i.id
-	JOIN products  AS p ON p.id         = s.product_id
-	WHERE c.` + "`condition`" + ` IN (0,1)
-	GROUP BY c.` + "`condition`" + `
-	ORDER BY c.` + "`condition`" + `
-	`
+	query := "SELECT c.`condition`, ROUND(SUM(s.quantity * p.price), 2) AS total_spent FROM customers AS c JOIN invoices  AS i ON i.customer_id = c.id JOIN sales     AS s ON s.invoice_id  = i.id JOIN products  AS p ON p.id = s.product_id WHERE c.`condition` IN (0,1) GROUP BY c.`condition` ORDER BY c.`condition`"
 
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -101,7 +90,7 @@ func (r *CustomersMySQL) GetTotalSpentByCondition() ([]internal.ConditionTotal, 
 	}
 	defer rows.Close()
 
-	var results []internal.ConditionTotal
+	results := make([]internal.ConditionTotal, 0)
 	for rows.Next() {
 		var ct internal.ConditionTotal
 		if err := rows.Scan(&ct.Condition, &ct.TotalSpent); err != nil {
@@ -132,7 +121,7 @@ func (r *CustomersMySQL) GetTopSpenders() ([]internal.CustomerSpender, error) {
     ORDER BY
       total_spent DESC
     LIMIT 5;
-	`
+    `
 
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -140,7 +129,7 @@ func (r *CustomersMySQL) GetTopSpenders() ([]internal.CustomerSpender, error) {
 	}
 	defer rows.Close()
 
-	var results []internal.CustomerSpender
+	results := make([]internal.CustomerSpender, 0)
 	for rows.Next() {
 		var cs internal.CustomerSpender
 		if err := rows.Scan(&cs.FirstName, &cs.LastName, &cs.TotalSpent); err != nil {

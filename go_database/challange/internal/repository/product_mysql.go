@@ -89,11 +89,11 @@ func (r *ProductsMySQL) GetTopSellingProducts() ([]internal.ProductQuantity, err
       products AS p
       JOIN sales AS s ON s.product_id = p.id
     GROUP BY
-      p.id
+      p.id, p.description
     ORDER BY
       total_quantity DESC
     LIMIT 5;
-	`
+    `
 
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -101,7 +101,7 @@ func (r *ProductsMySQL) GetTopSellingProducts() ([]internal.ProductQuantity, err
 	}
 	defer rows.Close()
 
-	var results []internal.ProductQuantity
+	results := make([]internal.ProductQuantity, 0)
 	for rows.Next() {
 		var pq internal.ProductQuantity
 		if err := rows.Scan(&pq.Description, &pq.TotalQuantity); err != nil {
