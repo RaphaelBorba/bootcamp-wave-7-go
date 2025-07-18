@@ -148,10 +148,8 @@ func (h *CustomersDefault) GetTopSpenders() http.HandlerFunc {
 		out := make([]internal.CustomerSpender, len(items))
 		for i, v := range items {
 			out[i] = internal.CustomerSpender{
-				ID:         v.ID,
 				FirstName:  v.FirstName,
 				LastName:   v.LastName,
-				Condition:  v.Condition,
 				TotalSpent: v.TotalSpent,
 			}
 		}

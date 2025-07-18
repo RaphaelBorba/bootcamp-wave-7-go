@@ -30,9 +30,7 @@ type ConditionTotal struct {
 	TotalSpent float64 `json:"total_spent"`
 }
 type CustomerSpender struct {
-	ID         int     `json:"id"`
 	FirstName  string  `json:"first_name"`
 	LastName   string  `json:"last_name"`
-	Condition  int     `json:"condition"`
 	TotalSpent float64 `json:"total_spent"`
 }

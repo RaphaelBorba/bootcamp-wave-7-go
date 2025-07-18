@@ -143,7 +143,7 @@ func (r *CustomersMySQL) GetTopSpenders() ([]internal.CustomerSpender, error) {
 	var results []internal.CustomerSpender
 	for rows.Next() {
 		var cs internal.CustomerSpender
-		if err := rows.Scan(&cs.ID, &cs.FirstName, &cs.LastName, &cs.Condition, &cs.TotalSpent); err != nil {
+		if err := rows.Scan(&cs.FirstName, &cs.LastName, &cs.TotalSpent); err != nil {
 			return nil, fmt.Errorf("scan top spender row: %w", err)
 		}
 		results = append(results, cs)
