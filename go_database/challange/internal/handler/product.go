@@ -108,7 +108,7 @@ func (h *ProductsDefault) Create() http.HandlerFunc {
 func (h *ProductsDefault) GetTopSellingProducts() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Call service layer
-		items, err := h.sv.GetTopSellingProducts(5)
+		items, err := h.sv.GetTopSellingProducts()
 		if err != nil {
 			log.Println("GetTopSellingProducts error:", err)
 			response.Error(w, http.StatusInternalServerError, "error getting top selling products")

@@ -11,5 +11,5 @@ type RepositoryCustomer interface {
 
 	GetTotalSpentByCondition() ([]ConditionTotal, error)
 
-	GetTopSpenders(limit int) ([]CustomerSpender, error)
+	GetTopSpenders() ([]CustomerSpender, error)
 }

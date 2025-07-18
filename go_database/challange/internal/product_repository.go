@@ -9,5 +9,5 @@ type RepositoryProduct interface {
 
 	CreateFromImport(p ProductDTO) error
 
-	GetTopSellingProducts(limit int) ([]ProductQuantity, error)
+	GetTopSellingProducts() ([]ProductQuantity, error)
 }

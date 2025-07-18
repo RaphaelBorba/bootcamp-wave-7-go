@@ -11,5 +11,5 @@ type ServiceCustomer interface {
 
 	GetTotalByCondition() ([]ConditionTotal, error)
 
-	GetTopSpenders(limit int) ([]CustomerSpender, error)
+	GetTopSpenders() ([]CustomerSpender, error)
 }

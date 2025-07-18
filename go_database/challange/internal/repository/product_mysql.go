@@ -80,19 +80,22 @@ func (r ProductsMySQL) CreateFromImport(p internal.ProductDTO) error {
 	return err
 }
 
-func (r *ProductsMySQL) GetTopSellingProducts(limit int) ([]internal.ProductQuantity, error) {
+func (r *ProductsMySQL) GetTopSellingProducts() ([]internal.ProductQuantity, error) {
 	query := `
-	SELECT
-	  p.description,
-	  SUM(s.quantity) AS total_quantity
-	FROM products AS p
-	JOIN sales    AS s ON s.product_id = p.id
-	GROUP BY p.description
-	ORDER BY total_quantity DESC
-	LIMIT ?
+    SELECT
+      p.description,
+      SUM(s.quantity) AS total_quantity
+    FROM
+      products AS p
+      JOIN sales AS s ON s.product_id = p.id
+    GROUP BY
+      p.id
+    ORDER BY
+      total_quantity DESC
+    LIMIT 5;
 	`
 
-	rows, err := r.db.Query(query, limit)
+	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("query top selling products: %w", err)
 	}

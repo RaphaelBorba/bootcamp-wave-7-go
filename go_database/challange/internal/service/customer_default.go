@@ -32,8 +32,8 @@ func (s *CustomersDefault) GetTotalByCondition() ([]internal.ConditionTotal, err
 	return s.rp.GetTotalSpentByCondition()
 }
 
-func (s *CustomersDefault) GetTopSpenders(limit int) ([]internal.CustomerSpender, error) {
-	return s.rp.GetTopSpenders(limit)
+func (s *CustomersDefault) GetTopSpenders() ([]internal.CustomerSpender, error) {
+	return s.rp.GetTopSpenders()
 }
 
 func (s *CustomersDefault) Import(items []internal.CustomerDTO) error {

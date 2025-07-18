@@ -116,29 +116,25 @@ func (r *CustomersMySQL) GetTotalSpentByCondition() ([]internal.ConditionTotal, 
 	return results, nil
 }
 
-func (r *CustomersMySQL) GetTopSpenders(limit int) ([]internal.CustomerSpender, error) {
+func (r *CustomersMySQL) GetTopSpenders() ([]internal.CustomerSpender, error) {
 	query := `
-	SELECT
-	  c.id,
-	  c.first_name,
-	  c.last_name,
-	  c.` + "`condition`" + `,
-	  ROUND(SUM(s.quantity * p.price), 2) AS total_spent
-	FROM customers AS c
-	  JOIN invoices  AS i ON i.customer_id = c.id
-	  JOIN sales     AS s ON s.invoice_id  = i.id
-	  JOIN products  AS p ON p.id         = s.product_id
-	WHERE c.` + "`condition`" + ` = 1
-	GROUP BY
-	  c.id,
-	  c.first_name,
-	  c.last_name
-	ORDER BY
-	  total_spent DESC
-	LIMIT ?
+    SELECT
+      c.first_name,
+      c.last_name,
+      ROUND(SUM(s.quantity * p.price), 2) AS total_spent
+    FROM customers AS c
+      JOIN invoices  AS i ON i.customer_id = c.id
+      JOIN sales     AS s ON s.invoice_id  = i.id
+      JOIN products  AS p ON p.id         = s.product_id 
+    GROUP BY
+      c.first_name,
+      c.last_name
+    ORDER BY
+      total_spent DESC
+    LIMIT 5;
 	`
 
-	rows, err := r.db.Query(query, limit)
+	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("query top spenders: %w", err)
 	}

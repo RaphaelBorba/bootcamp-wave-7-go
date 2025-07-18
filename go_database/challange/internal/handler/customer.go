@@ -138,7 +138,7 @@ func (h *CustomersDefault) GetTotalByCondition() http.HandlerFunc {
 
 func (h *CustomersDefault) GetTopSpenders() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		items, err := h.sv.GetTopSpenders(5)
+		items, err := h.sv.GetTopSpenders()
 		if err != nil {
 			log.Println("GetTopSpenders error:", err)
 			response.Error(w, http.StatusInternalServerError, "error getting top spenders")

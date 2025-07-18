@@ -9,5 +9,5 @@ type ServiceProduct interface {
 
 	Import(items []ProductDTO) error
 
-	GetTopSellingProducts(limit int) ([]ProductQuantity, error)
+	GetTopSellingProducts() ([]ProductQuantity, error)
 }
